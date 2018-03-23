@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Animal Buttons</title>
+</head>
+<style type="text/css">
+  .imgspan {float:left; display:inline;}
+</style>
+
+<body>
+  <div id=buttons></div>
+  <form><div>Add me animal <input type="text" id="keyword-input"><input type="submit" id="addme"></input></div></form>
+  <div id="gifs-appear-here"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript">
+    var mbuttons = ["cat", "rabbit", "goldfish", "dog", "bird", "ferret"];
+ $("#addme").on("click", function(event) {
+        event.preventDefault();
+        var keyword_inp = $("#keyword-input").val().trim();
+        if(keyword_inp == '' || mbuttons.includes(keyword_inp)){
+          return;
+        }
+        mbuttons.push(keyword_inp);
+        $("#keyword-input").val("");
+        renderButtons();
+      });
+
+      var main = $("body");
+      var btns = main.find("#buttons");
+      renderButtons();
+
+
+     function renderButtons() {
+      btns.empty();
+      for (var i = 0; i < mbuttons.length; i++) {
+
+        var keywordBtn = $("<button>");
+        keywordBtn.attr("data-keyword",mbuttons[i]);
+        keywordBtn.addClass("keyword-btn");
+        keywordBtn.text(mbuttons[i]);
+        btns.append(keywordBtn);
+       }
+      }
+    
+    btns.on("click",".keyword-btn", function() {
+      
+      var data = $(this).attr("data-keyword");
+
+      var queryURL = "https://api.giphy.com/v1/gifs/search?q=" + data + "&api_key=dc6zaTOxFJmzC&limit=10";
+      $.ajax({
+        url: queryURL,
+        method: "GET"
+      })
+      .then(function(response) {
+          console.log(queryURL);
+
+          console.log(response);
+          var results = response.data;
+
+          for (var i = 0; i < results.length; i++) {
+
+            
+            var imgDiv = $("<span>");
+            imgDiv.addClass("imgspan");
+
+            
+            var p = $("<p>").text("Rating: " + results[i].rating);
+
+            
+            var keywordImage = $("<img>");
+            
+            keywordImage.attr("src_nonanim", results[i].images.original_still.url);
+            keywordImage.attr("src_anim", results[i].images.original.url);
+            keywordImage.attr("src",results[i].images.original_still.url);
+            keywordImage.attr("_animated",0);
+
+            imgDiv.append(p);
+            imgDiv.append(keywordImage);
+
+            $("#gifs-appear-here").prepend(imgDiv);
+          }
+
+          $("img").on("click", function() {
+            var mimg=$(this);
+            console.log(mimg);
+            if (mimg.attr("_animated")==0) {
+              mimg.attr("src",mimg.attr("src_anim"));
+              mimg.attr("style","border:1px solid red");
+            }
+            else {
+              mimg.attr("src",mimg.attr("src_nonanim"));
+              mimg.attr("style","");
+            }
+            
+            mimg.attr("_animated",1-mimg.attr("_animated"));
+          });  
+        });
+    });
+  </script>
+</body>
+
+</html>
